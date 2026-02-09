@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" /> 
+<title>Contrôle Robot — Interface</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  :root{ --bg:#0c0c0c; --accent:#ff3b3b; --muted:#bbb; --panel:#151515; --ok:#28a745; }
+  *{box-sizing:border-box}
+
+  body{
+    margin:0;
+    font-family:Arial,Helvetica,sans-serif;
+    background:var(--bg);
+    color:#fff;
+    display:flex;
+    justify-content:center;
+    padding:40px 20px;
+  }
+
+  .card{
+    width:760px;
+    max-width:95%;
+    background:linear-gradient(180deg,#0f0f12,#0a0a0a);
+    border-radius:10px;
+    padding:30px 24px;
+  }
+
+  h1{margin:0 0 16px;color:var(--accent);font-size:22px}
+  .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+  .conn{padding:8px 12px;border-radius:8px;background:#222;color:#ddd;border:2px solid rgba(255,255,255,0.06)}
+  .conn.ok{background:linear-gradient(90deg,var(--ok),#47d87f);color:#04260b}
+  .layout{display:grid;grid-template-columns:1fr 320px;gap:20px}
+  .box{background:var(--panel);padding:16px;border-radius:8px}
+  .grid{display:grid;grid-template-columns:100px 100px 100px;grid-template-rows:100px 100px 100px;gap:10px;justify-content:center;align-items:center}
+  .btn{width:100px;height:100px;border-radius:10px;background:#1a1a1a;border:2px solid var(--accent);cursor:pointer}
+  .small{font-size:13px;color:var(--muted);margin-top:6px}
+  .battery{background:#121212;border-radius:8px;padding:8px}
+  .track{height:16px;background:rgba(255,255,255,0.06);border-radius:8px;overflow:hidden}
+  .fill{height:100%;width:0%;background:linear-gradient(90deg,var(--ok),#9be6a3);transition:width .3s}
+  /* nouveau style pour encadré batterie (intensité/tension) */
+  .bat-info { background:#0b0b0b;border:1px solid rgba(255,255,255,0.04); padding:10px; border-radius:8px; }
+  .bat-row{ display:flex; justify-content:space-between; align-items:center; gap:8px; padding:6px 0; }
+  .bat-label{ font-size:13px; color:var(--muted) }
+  .bat-value{ font-weight:700 }
+  @media(max-width:720px){.layout{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="top">
+      <h1>Mon Robot — Contrôle</h1>
+      <div style="display:flex;gap:12px;align-items:center">
+        <button id="btnConn" class="conn">Déconnecté</button>
+        <label style="display:flex;align-items:center;gap:8px">
+          <input id="autoSwitch" type="checkbox" onchange="toggleAuto()" />
+          <span class="small">Mode manuel</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="layout">
+      <section class="box">
+        <div class="small">Déplacements</div>
+        <div id="controls" class="grid" style="margin-top:12px">
+          <div></div>
+          <button class="btn" onclick="start('forward')" onmousedown="start('forward')" onmouseup="stop()" ontouchstart="start('forward')" ontouchend="stop()" aria-label="Avant">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:auto">
+          <line x1="12" y1="19" x2="12" y2="5"></line>
+          <polyline points="5 12 12 5 19 12"></polyline>
+        </svg>
+          </button>
+          <div></div>
+
+          <button class="btn" onclick="start('left')" onmousedown="start('left')" onmouseup="stop()" ontouchstart="start('left')" ontouchend="stop()" aria-label="Gauche">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:auto">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+          </button>
+          <div style="display:flex;align-items:center;justify-content:center;color:var(--muted)">--</div>
+          <button class="btn" onclick="start('right')" onmousedown="start('right')" onmouseup="stop()" ontouchstart="start('right')" ontouchend="stop()" aria-label="Droite">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:auto">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+          </button>
+
+          <div></div>
+          <button class="btn" onclick="start('backward')" onmousedown="start('backward')" onmouseup="stop()" ontouchstart="start('backward')" ontouchend="stop()" aria-label="Arrière">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:auto">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <polyline points="19 12 12 19 5 12"></polyline>
+        </svg>
+          </button>
+          <div></div>
+        </div>
+
+        <div class="small" style="margin-top:14px">Actions</div>
+        <div style="display:flex;gap:10px;margin-top:8px; ">
+          <button id="a1" class="btn" style="height:40px;color: #ffff;" onclick="action(1)">Action 1</button>
+          <button id="a2" class="btn" style="height:40px;color: #ffff;" onclick="action(2)">Action 2</button>
+          <button id="a3" class="btn" style="height:40px;color: #ffff;" onclick="action(3)">Action 3</button>
+          <button id="a4" class="btn" style="height:40px;color: #ffff;" onclick="action(4)">Action 4</button>
+        </div>
+      </section>
+
+      <aside class="box">
+        <div class="small">Connexion</div>
+        <div id="connText" class="small" style="font-weight:700;margin-top:6px">Non connecté</div>
+
+        <!-- intensité / tension -->
+        <div class="small" style="margin-top:12px">Batterie</div>
+        <div class="bat-info" style="margin-top:6px">
+          <div class="bat-row">
+            <div class="bat-label">Intensité</div>
+            <div id="batCurrent" class="bat-value">— A</div>
+          </div>
+          <div class="bat-row">
+            <div class="bat-label">Tension</div>
+            <div id="batVoltage" class="bat-value">— V</div>
+          </div>
+        </div>
+
+        <div class="small" style="margin-top:12px">Info</div>
+        <div id="info" class="small">Aucune information.</div>
+
+        <div class="small" style="margin-top:12px">Caméra</div>
+        <img id="cam" src="/static/frame.jpg" width="100%" style="border-radius:8px">
+
+        <script>
+            async function chargerDonnees() {
+              const info = document.getElementById("info");
+
+              try {
+                const response = await fetch("/data");
+
+                const data = await response.json(); 
+
+                if (data.error) {
+                  info.textContent = "Erreur serveur : " + data.error;
+                  return;
+                }
+
+                document.getElementById("batVoltage").textContent = data.tension + " V";
+                document.getElementById("batCurrent").textContent = data.courant + " A";
+                info.textContent = "Dernière mise à jour : " + new Date().toLocaleTimeString();
+
+              } catch (err) {
+                console.error(err);
+                info.textContent = "Erreur lors de la récupération des données : " + err.message;
+              }
+            }
+
+          // Mise à jour toutes les 1 secondes
+          setInterval(chargerDonnees, 1000);
+          chargerDonnees();
+        </script>
+      </aside>
+    </div>
+  </div>
+
+<script>
+/* état et sélecteurs */
+let autoMode = false;
+const btnConn = document.getElementById('btnConn');
+const connText = document.getElementById('connText');
+const batCurrent = document.getElementById('batCurrent');
+const batVoltage = document.getElementById('batVoltage');
+const info = document.getElementById('info');
+
+/* direction -> chiffre */
+const MAP = { forward:"1", backward:"2", left:"3", right:"4", stop:"0" };
+
+function start(d){ send(d); }
+function stop(){ send('stop'); }
+
+function toggleAuto(){
+  autoMode = document.getElementById('autoSwitch').checked;
+  document.querySelector('label span').textContent = autoMode ? 'Mode autonome' : 'Mode manuel';
+  document.getElementById('controls').style.display = autoMode ? 'none' : 'grid';
+  info.textContent = autoMode ? 'Robot en autonomie' : 'Contrôle manuel';
+  fetch('/api/mode',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({auto:autoMode})}).catch(()=>{});
+}
+
+function send(direction){
+  if(autoMode) return;
+  const code = MAP[direction] || "0";
+  fetch(`/api/move?dir=${code}`,{method:'POST'}).catch(()=>{});
+}
+
+function action(id){
+  const b=document.getElementById('a'+id);
+  b.textContent='Envoi…'; b.disabled=true;
+  fetch(`/api/action?id=${id}`,{method:'POST'})
+  .then(r=>{ b.disabled=false; b.textContent='Action '+id; info.textContent=r.ok?`Action ${id} ok`:`Erreur ${r.status}`; })
+  .catch(()=>{ b.disabled=false; b.textContent='Action '+id; info.textContent='Erreur réseau'; });
+}
+
+/* Status */
+async function poll(){
+  try{
+    const r=await fetch('/api/status');
+    if(!r.ok){ offline(); return; }
+    const d=await r.json();
+    online();
+    // Si le serveur renvoie un champ level (ancien usage) : on l'ignore pour l'affichage actuel
+    // Mise à jour intensité (soutien pour current en A ou current_mA en mA)
+    if (typeof d.current === 'number') {
+      batCurrent.textContent = `${(d.current).toFixed(2)} A`;
+    } else if (typeof d.current_mA === 'number') {
+      batCurrent.textContent = `${(d.current_mA / 1000).toFixed(2)} A`;
+    } else {
+      batCurrent.textContent = '— A';
+    }
+    // Mise à jour tension
+    if (typeof d.voltage === 'number') {
+      batVoltage.textContent = `${(d.voltage).toFixed(2)} V`;
+    } else {
+      batVoltage.textContent = '— V';
+    }
+    if(d.info) info.textContent=d.info;
+  } catch{ offline(); }
+}
+function online(){ btnConn.classList.add('ok'); btnConn.textContent='Connecté'; connText.textContent='Connecté'; }
+function offline(){ btnConn.classList.remove('ok'); btnConn.textContent='Déconnecté'; connText.textContent='Non connecté'; }
+
+/* clavier */
+const K={ArrowUp:'forward',ArrowDown:'backward',ArrowLeft:'left',ArrowRight:'right',w:'forward',s:'backward',a:'left',d:'right'};
+const down=new Set();
+window.addEventListener('keydown',e=>{
+  const k=e.key.length===1?e.key.toLowerCase():e.key;
+  if(!(k in K)||autoMode||down.has(k))return;
+  e.preventDefault();down.add(k);send(K[k]);
+});
+window.addEventListener('keyup',e=>{
+  const k=e.key.length===1?e.key.toLowerCase():e.key;
+  if(!(k in K))return;
+  e.preventDefault();down.delete(k);send('stop');
+});
+window.addEventListener('blur',()=>{down.clear();send('stop');});
+
+/* init */
+(function(){ offline(); batCurrent.textContent='— A'; batVoltage.textContent='— V'; poll(); setInterval(poll,5000); })();
+</script>
+</body>
+</html>
